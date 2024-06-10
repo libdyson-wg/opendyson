@@ -1,0 +1,9 @@
+services:
+  oapi-codegen:
+    build: ./_docker/oapi-codegen
+    environment:
+      UID: 1000
+      GID: 984
+    volumes:
+      - ./openapi.yaml:/opt/in/spec.yaml
+      - ./internal/generated/oapi:/opt/out
