@@ -12,72 +12,60 @@ import (
 	"github.com/google/uuid"
 )
 
-type httpBeginLoginFunc func(
-	ctx context.Context,
-	params *oapi.BeginLoginParams,
-	body oapi.BeginLoginJSONRequestBody,
-	reqEditors ...oapi.RequestEditorFn,
-) (*oapi.BeginLoginResponse, error)
+func BeginLogin(email string) (challengeID uuid.UUID, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
-func BeginLogin(
-	requestBeginLogin httpBeginLoginFunc,
-) func(email string) (challengeID uuid.UUID, err error) {
-	return func(email string) (challengeID uuid.UUID, err error) {
-		body := oapi.BeginLoginJSONRequestBody{
+	{
+		body := oapi.GetUserStatusJSONRequestBody{
 			Email: types.Email(email),
 		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-		defer cancel()
-
-		resp, err := requestBeginLogin(ctx, nil, body)
-
-		if err != nil || resp.JSON200 == nil {
-			return uuid.Nil, fmt.Errorf("couldn't perform login: error %w, http status %s", err, resp.Status())
+		resp, err := client.GetUserStatusWithResponse(ctx, nil, body)
+		if err != nil {
+			return uuid.Nil, fmt.Errorf("couldn't get user status: %w", err)
 		}
 
-		return uuid.UUID(resp.JSON200.ChallengeId), nil
+		if resp == nil || resp.JSON200 == nil {
+			return uuid.Nil, fmt.Errorf("couldn't get user status: nil response")
+		}
 	}
+
+	body := oapi.BeginLoginJSONRequestBody{
+		Email: types.Email(email),
+	}
+	resp, err := client.BeginLoginWithResponse(ctx, nil, body)
+
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("couldn't begin login: %w", err)
+	}
+
+	if resp == nil || resp.JSON200 == nil {
+		return uuid.Nil, fmt.Errorf("couldn't begin login: nil response")
+	}
+
+	return resp.JSON200.ChallengeId, nil
 }
 
-type httpCompleteLoginFunc func(
-	ctx context.Context,
-	params *oapi.CompleteLoginParams,
-	body oapi.CompleteLoginJSONRequestBody,
-	reqEditors ...oapi.RequestEditorFn,
-) (*oapi.CompleteLoginResponse, error)
-
-func CompleteLogin(
-	requestCompleteLogin httpCompleteLoginFunc,
-) func(
-	email string,
-	otpCode string,
-	challengeID uuid.UUID,
-	password string,
-) (token string, err error) {
-	return func(
-		email string,
-		otpCode string,
-		challengeID uuid.UUID,
-		password string,
-	) (token string, err error) {
-		body := oapi.CompleteLoginJSONRequestBody{
-			Email:       types.Email(email),
-			OtpCode:     otpCode,
-			ChallengeId: challengeID,
-			Password:    password,
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-		defer cancel()
-
-		resp, err := requestCompleteLogin(ctx, nil, body)
-
-		if err != nil || resp.JSON200 == nil {
-			return "", fmt.Errorf("couldn't perform login: error %w, http status %s", err, resp.Status())
-		}
-
-		return resp.JSON200.Tokeng, nil
-
+func CompleteLogin(email, otpCode, password string, challengeID uuid.UUID) (token string, err error) {
+	body := oapi.CompleteLoginJSONRequestBody{
+		Email:       types.Email(email),
+		OtpCode:     otpCode,
+		ChallengeId: challengeID,
+		Password:    password,
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	resp, err := client.CompleteLoginWithResponse(ctx, nil, body)
+
+	if err != nil {
+		return "", fmt.Errorf("couldn't complete login: %w", err)
+	}
+
+	if resp == nil || resp.JSON200 == nil {
+		return "", fmt.Errorf("couldn't complete login: nil response")
+	}
+
+	return resp.JSON200.Token, nil
 }

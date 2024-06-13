@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/libdyson-wg/libdyson-go/config"
 
 	"github.com/spf13/cobra"
 )
@@ -9,8 +9,18 @@ import (
 var devicesCmd = &cobra.Command{
 	Use:   "devices",
 	Short: "Lists the devices on your account",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		tok, err := config.GetToken()
+		if err != nil {
+			return err
+		}
+		if tok == "" {
+			err = funcs.Login()
+		}
+		return err
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("devices called")
+		//ds, err := funcs.GetDevices
 	},
 }
 
