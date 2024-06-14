@@ -88,8 +88,10 @@ type DeviceConnectionCategory string
 
 // Firmware defines model for Firmware.
 type Firmware struct {
-	AutoUpdateEnabled bool                `json:"autoUpdateEnabled"`
-	Capabilities      *[]CapabilityString `json:"capabilities,omitempty"`
+	AutoUpdateEnabled   bool                `json:"autoUpdateEnabled"`
+	Capabilities        *[]CapabilityString `json:"capabilities,omitempty"`
+	NewVersionAvailable bool                `json:"newVersionAvailable"`
+	Version             string              `json:"version"`
 }
 
 // IoTCredentials defines model for IoTCredentials.

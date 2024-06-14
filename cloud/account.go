@@ -3,6 +3,7 @@ package cloud
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/libdyson-wg/libdyson-go/internal/generated/oapi"
@@ -25,8 +26,8 @@ func BeginLogin(email string) (challengeID uuid.UUID, err error) {
 			return uuid.Nil, fmt.Errorf("couldn't get user status: %w", err)
 		}
 
-		if resp == nil || resp.JSON200 == nil {
-			return uuid.Nil, fmt.Errorf("couldn't get user status: nil response")
+		if resp.StatusCode() != http.StatusOK {
+			return uuid.Nil, fmt.Errorf("couldn't get user status: http status code %d", resp.StatusCode())
 		}
 	}
 
@@ -39,8 +40,8 @@ func BeginLogin(email string) (challengeID uuid.UUID, err error) {
 		return uuid.Nil, fmt.Errorf("couldn't begin login: %w", err)
 	}
 
-	if resp == nil || resp.JSON200 == nil {
-		return uuid.Nil, fmt.Errorf("couldn't begin login: nil response")
+	if resp.StatusCode() != http.StatusOK {
+		return uuid.Nil, fmt.Errorf("couldn't begin login: http status code %d", resp.StatusCode())
 	}
 
 	return resp.JSON200.ChallengeId, nil
