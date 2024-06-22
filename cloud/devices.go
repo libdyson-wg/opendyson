@@ -2,13 +2,23 @@ package cloud
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/libdyson-wg/libdyson-go/internal/generated/oapi"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/libdyson-wg/libdyson-go/devices"
+)
+
+var (
+	key = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}
+	iv  = make([]byte, 16)
 )
 
 func GetDevices() ([]devices.Device, error) {
@@ -61,11 +71,33 @@ func mapDevice(in oapi.Device) (out devices.Device) {
 		out.Variant = *in.Variant
 	}
 
-	out.MQTT.LocalCredentials = in.ConnectedConfiguration.Mqtt.LocalBrokerCredentials
+	out.MQTT.Password = decryptCredentials(in.ConnectedConfiguration.Mqtt.LocalBrokerCredentials)
 	out.MQTT.TopicRoot = in.ConnectedConfiguration.Mqtt.MqttRootTopicLevel
+	out.MQTT.Port = 1883
+	out.MQTT.Username = in.SerialNumber
 
 	out.Firmware.Version = in.ConnectedConfiguration.Firmware.Version
 	out.Firmware.AutoUpdateEnabled = in.ConnectedConfiguration.Firmware.AutoUpdateEnabled
 	out.Firmware.NewVersionAvailable = in.ConnectedConfiguration.Firmware.NewVersionAvailable
 	return out
+}
+
+func decryptCredentials(in string) string {
+	block, _ := aes.NewCipher(key)
+	bm := cipher.NewCBCDecrypter(block, iv)
+
+	rawIn, _ := base64.StdEncoding.DecodeString(in)
+	out := make([]byte, len(rawIn))
+	bm.CryptBlocks(out, rawIn)
+
+	out = []byte(strings.Trim(string(out), "\b"))
+
+	grabber := passwordGrabber{}
+	_ = json.Unmarshal(out, &grabber)
+
+	return grabber.Password
+}
+
+type passwordGrabber struct {
+	Password string `json:"apPasswordHash"`
 }

@@ -30,8 +30,10 @@ type CloudIOTCredentials struct {
 }
 
 type MQTTConfig struct {
-	LocalCredentials string `yaml:"local_credentials"`
-	TopicRoot        string `yaml:"root_topic"`
+	Port      int    `yaml:"port"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
+	TopicRoot string `yaml:"topic_root"`
 }
 
 type FirmwareData struct {
