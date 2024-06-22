@@ -1,9 +1,9 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 )
@@ -39,22 +39,16 @@ var fullFilePath string
 
 type Config struct {
 	Token string
-
-	Devices []Device
 }
 
-type Device struct {
-	Serial string
-}
-
-// writeConfig is a variable so it can be replaced with a mock in unit tests
+// writeConfig is a variable, so it can be replaced with a mock in unit tests
 var writeConfig = func(config Config) error {
 	file, err := os.Create(fullFilePath)
 	if err != nil {
 		return fmt.Errorf("unable to open config file for writing: %w", err)
 	}
 
-	err = json.NewEncoder(file).Encode(config)
+	err = yaml.NewEncoder(file).Encode(config)
 	if err != nil {
 		err = fmt.Errorf("unable to parse config file: %w", err)
 	}
@@ -62,7 +56,7 @@ var writeConfig = func(config Config) error {
 	return err
 }
 
-// readConfig is a variable so it can be replaced with a mock in unit tests
+// readConfig is a variable, so it can be replaced with a mock in unit tests
 var readConfig = func() (Config, error) {
 	conf := Config{}
 
@@ -71,7 +65,7 @@ var readConfig = func() (Config, error) {
 		return conf, fmt.Errorf("unable to open config file for reading: %w", err)
 	}
 
-	err = json.NewDecoder(f).Decode(&conf)
+	err = yaml.NewDecoder(f).Decode(&conf)
 	if err != nil {
 		err = fmt.Errorf("unable to parse config file: %w", err)
 	}

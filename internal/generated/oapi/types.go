@@ -71,7 +71,7 @@ type ConnectedConfiguration struct {
 // Device defines model for Device.
 type Device struct {
 	Category               DeviceCategory           `json:"category"`
-	ConnectedConfiguration ConnectedConfiguration   `json:"connectedConfiguration"`
+	ConnectedConfiguration *ConnectedConfiguration  `json:"connectedConfiguration,omitempty"`
 	ConnectionCategory     DeviceConnectionCategory `json:"connectionCategory"`
 	Model                  string                   `json:"model"`
 	Name                   string                   `json:"name"`

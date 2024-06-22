@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"gopkg.in/yaml.v3"
+	"github.com/libdyson-wg/opendyson/internal/config"
 
-	"github.com/libdyson-wg/libdyson-go/config"
+	"gopkg.in/yaml.v3"
 
 	"github.com/spf13/cobra"
 )
@@ -36,8 +36,8 @@ var devicesCmd = &cobra.Command{
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
 		fmt.Println()
-		fmt.Println("This is sensitive information that can be used to control your devices. " +
-			"Please take caution before sharing the information above with anyone you do not trust.")
+		fmt.Println("This is sensitive information that can be used to remotely control your Dyson devices. " +
+			"Please take caution before sharing it with anyone you do not trust.")
 	},
 }
 

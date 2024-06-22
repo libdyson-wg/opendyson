@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/libdyson-wg/libdyson-go/config"
+	"github.com/libdyson-wg/opendyson/internal/config"
 
 	"github.com/spf13/cobra"
 )

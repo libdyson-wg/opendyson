@@ -1,9 +1,9 @@
-package account
+package cli
 
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/libdyson-wg/libdyson-go/cloud"
+	"github.com/libdyson-wg/opendyson/cloud"
 )
 
 func Login(

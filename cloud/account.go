@@ -6,29 +6,50 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/libdyson-wg/libdyson-go/internal/generated/oapi"
+	"github.com/libdyson-wg/opendyson/internal/generated/oapi"
 
 	"github.com/oapi-codegen/runtime/types"
 
 	"github.com/google/uuid"
 )
 
+type AccountStatus string
+
+const (
+	AccountStatusActive       AccountStatus = "ACTIVE"
+	AccountStatusUnregistered AccountStatus = "UNREGISTERED"
+)
+
+func GetUserStatus(email string) (AccountStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	body := oapi.GetUserStatusJSONRequestBody{
+		Email: types.Email(email),
+	}
+	resp, err := client.GetUserStatusWithResponse(ctx, nil, body)
+	if err != nil {
+		return "", fmt.Errorf("couldn't get user status: %w", err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("couldn't get user status: http status code %d", resp.StatusCode())
+	}
+
+	return AccountStatus(resp.JSON200.AccountStatus), nil
+}
+
 func BeginLogin(email string) (challengeID uuid.UUID, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	{
-		body := oapi.GetUserStatusJSONRequestBody{
-			Email: types.Email(email),
-		}
-		resp, err := client.GetUserStatusWithResponse(ctx, nil, body)
-		if err != nil {
-			return uuid.Nil, fmt.Errorf("couldn't get user status: %w", err)
-		}
+	status, err := GetUserStatus(email)
+	if err != nil {
+		return uuid.Nil, err
+	}
 
-		if resp.StatusCode() != http.StatusOK {
-			return uuid.Nil, fmt.Errorf("couldn't get user status: http status code %d", resp.StatusCode())
-		}
+	if status != AccountStatusActive {
+		return uuid.Nil, fmt.Errorf("account status is %s", status)
 	}
 
 	body := oapi.BeginLoginJSONRequestBody{

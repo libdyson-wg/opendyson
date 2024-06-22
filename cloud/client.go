@@ -3,7 +3,7 @@ package cloud
 import (
 	"context"
 	"fmt"
-	"github.com/libdyson-wg/libdyson-go/internal/generated/oapi"
+	"github.com/libdyson-wg/opendyson/internal/generated/oapi"
 	"net/http"
 )
 
@@ -17,8 +17,6 @@ const (
 var (
 	region ServerRegion = RegionGlobal
 	client oapi.ClientWithResponsesInterface
-
-	provisioned bool
 
 	token string
 

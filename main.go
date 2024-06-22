@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/libdyson-wg/libdyson-go/cloud"
-	"github.com/libdyson-wg/libdyson-go/cmd/dson/cmd"
-	"github.com/libdyson-wg/libdyson-go/config"
+	"github.com/libdyson-wg/opendyson/cloud"
+	"github.com/libdyson-wg/opendyson/cmd"
+	"github.com/libdyson-wg/opendyson/internal/config"
 )
 
 func main() {
