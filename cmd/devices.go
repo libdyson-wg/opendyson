@@ -12,7 +12,7 @@ import (
 
 var devicesCmd = &cobra.Command{
 	Use:   "devices",
-	Short: "Lists the devices on your account",
+	Short: "Lists the devices on your Dyson account",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		tok, err := config.GetToken()
 		if err != nil {
@@ -37,7 +37,7 @@ var devicesCmd = &cobra.Command{
 	PostRun: func(cmd *cobra.Command, args []string) {
 		fmt.Println()
 		fmt.Println("This is sensitive information that can be used to remotely control your Dyson devices. " +
-			"Please take caution before sharing it with anyone you do not trust.")
+			"Please take caution before sharing it with anyone you don't trust.")
 	},
 }
 
