@@ -8,7 +8,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "opendyson",
-	Short: "A community tool for connecting to and debugging W-Fi connected Dyson devices",
+	Short: "A community tool for connecting to and debugging Wi-Fi connected Dyson devices",
 
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
