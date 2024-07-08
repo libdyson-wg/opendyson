@@ -6,12 +6,11 @@ import (
 	"golang.org/x/term"
 	"os"
 	"strings"
-	"syscall"
 )
 
 func PromptForPassword(prompt string) (string, error) {
 	fmt.Print(prompt)
-	pass, err := term.ReadPassword(syscall.Stdin)
+	pass, err := term.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Println("")
 	if err != nil {
 		err = fmt.Errorf("error reading password: %w", err)
