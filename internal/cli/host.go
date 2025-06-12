@@ -1,8 +1,3 @@
-diff --git a/internal/cli/host.go b/internal/cli/host.go
-index a325293127cac3855baf02ff09f1403bfd781db5..a8537b0afb45551573544f68d4491b8af482fedb 100644
---- a/internal/cli/host.go
-+++ b/internal/cli/host.go
-@@ -1,73 +1,94 @@
  package cli
  
  import (
@@ -11,7 +6,7 @@ index a325293127cac3855baf02ff09f1403bfd781db5..a8537b0afb45551573544f68d4491b8a
  	"os/signal"
  	"strings"
  	"syscall"
-+	"time"
+	"time"
  
  	mqttsrv "github.com/mochi-co/mqtt/server"
  	"github.com/mochi-co/mqtt/server/listeners"
@@ -47,31 +42,31 @@ index a325293127cac3855baf02ff09f1403bfd781db5..a8537b0afb45551573544f68d4491b8a
  			for _, topic := range []string{cd.StatusTopic(), cd.FaultTopic(), cd.CommandTopic()} {
  				t := topic
  				if err := cd.SubscribeRaw(t, func(b []byte) {
-+					fmt.Printf("Incoming message %s on topic %s\n", string(b), t)
+					fmt.Printf("Incoming message %s on topic %s\n", string(b), t)
  					srv.Publish(t, b, false)
  				}); err != nil {
  					return err
  				}
  			}
-+
-+			if iot {
-+				go func() {
-+					ticker := time.NewTicker(30 * time.Second)
-+					defer ticker.Stop()
-+					for {
-+						<-ticker.C
-+						ts := time.Now().UTC().Format(time.RFC3339)
-+						msgs := []string{
-+							fmt.Sprintf(`{"mode-reason":"RAPP","time":"%s","msg":"REQUEST-CURRENT-FAULTS"}`, ts),
-+							fmt.Sprintf(`{"mode-reason":"RAPP","time":"%s","msg":"REQUEST-CURRENT-STATE"}`, ts),
-+						}
-+						for _, m := range msgs {
-+							fmt.Printf("Sending %s to %s\n", m, cd.CommandTopic())
-+							_ = cd.SendRaw(cd.CommandTopic(), []byte(m))
-+						}
-+					}
-+				}()
-+			}
+
+			if iot {
+				go func() {
+					ticker := time.NewTicker(30 * time.Second)
+					defer ticker.Stop()
+					for {
+						<-ticker.C
+						ts := time.Now().UTC().Format(time.RFC3339)
+						msgs := []string{
+							fmt.Sprintf(`{"mode-reason":"RAPP","time":"%s","msg":"REQUEST-CURRENT-FAULTS"}`, ts),
+							fmt.Sprintf(`{"mode-reason":"RAPP","time":"%s","msg":"REQUEST-CURRENT-STATE"}`, ts),
+						}
+						for _, m := range msgs {
+							fmt.Printf("Sending %s to %s\n", m, cd.CommandTopic())
+							_ = cd.SendRaw(cd.CommandTopic(), []byte(m))
+						}
+					}
+				}()
+			}
  			return nil
  		}
  
