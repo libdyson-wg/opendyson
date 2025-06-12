@@ -114,7 +114,12 @@ func (d *BaseConnectedDevice) SendRaw(topic string, msg []byte) error {
 		return err
 	}
 
-	t := d.client.Publish(topic, 2, false, msg)
+	qos := byte(2)
+	if d.mode == ModeIoT {
+		qos = 1
+	}
+
+	t := d.client.Publish(topic, qos, false, msg)
 	if !t.WaitTimeout(timeout) {
 		return fmt.Errorf("timeout sending message")
 	}
