@@ -40,3 +40,9 @@ anyone to control a device or read its sensors remotely from anywhere in the wor
 
 `opendyson listen SERIALNUMBER` will subscribe to the device's status, error, and command message topics through MQTT. If the `--iot` flag
 is included, opendyson will connect to the cloud-based IoT service instead of attempting to connect directly to the device.
+
+### Host MQTT messages locally
+
+`opendyson host SERIALNUMBER` starts a local MQTT broker on port 1883. The command subscribes to the same topics as `listen` and republishes
+the messages to the local broker. Use `opendyson host ALL` to bridge all discovered devices. The `--iot` flag can be used in the same way as
+with `listen`.

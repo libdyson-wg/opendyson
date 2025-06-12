@@ -12,6 +12,7 @@ import (
 type functions struct {
 	Login      func() error
 	MQTTListen func(serial string, iot bool) error
+	MQTTHost   func(serial string, iot bool) error
 	GetDevices func() ([]devices.Device, error)
 }
 
@@ -34,5 +35,8 @@ func init() {
 			func(in string) {
 				_, _ = fmt.Println(in)
 			}),
+		MQTTHost: cli.Host(
+			cloud.GetDevices,
+		),
 	}
 }
