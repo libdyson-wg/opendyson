@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	mqttsrv "github.com/mochi-co/mqtt/server"
 	"github.com/mochi-co/mqtt/server/listeners"
@@ -45,6 +46,24 @@ func Host(
 				}); err != nil {
 					return err
 				}
+			}
+
+			if iot {
+				go func() {
+					ticker := time.NewTicker(30 * time.Second)
+					defer ticker.Stop()
+					for {
+						<-ticker.C
+						ts := time.Now().UTC().Format(time.RFC3339)
+						msgs := []string{
+							fmt.Sprintf(`{"mode-reason":"RAPP","time":"%s","msg":"REQUEST-CURRENT-FAULTS"}`, ts),
+							fmt.Sprintf(`{"mode-reason":"RAPP","time":"%s","msg":"REQUEST-CURRENT-STATE"}`, ts),
+						}
+						for _, m := range msgs {
+							_ = cd.SendRaw(cd.CommandTopic(), []byte(m))
+						}
+					}
+				}()
 			}
 			return nil
 		}
