@@ -1,53 +1,53 @@
-package cli
-
-import (
-	"fmt"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
+ package cli
+ 
+ import (
+ 	"fmt"
+ 	"os"
+ 	"os/signal"
+ 	"strings"
+ 	"syscall"
 	"time"
-
-	mqttsrv "github.com/mochi-co/mqtt/server"
-	"github.com/mochi-co/mqtt/server/listeners"
-	"github.com/mochi-co/mqtt/server/listeners/auth"
-
-	"github.com/libdyson-wg/opendyson/devices"
-)
-
-func Host(
-	getDevices func() ([]devices.Device, error),
-) func(serial string, iot bool) error {
-	return func(serial string, iot bool) error {
-		srv := mqttsrv.New()
-		tcp := listeners.NewTCP("t1", ":1883")
-		if err := srv.AddListener(tcp, &listeners.Config{Auth: new(auth.Allow)}); err != nil {
-			return fmt.Errorf("add listener: %w", err)
-		}
-		go func() {
-			if err := srv.Serve(); err != nil {
-				fmt.Println(err)
-			}
-		}()
-
-		ds, err := getDevices()
-		if err != nil {
-			return err
-		}
-
-		subscribe := func(cd devices.ConnectedDevice) error {
-			if iot {
-				cd.SetMode(devices.ModeIoT)
-			}
-			for _, topic := range []string{cd.StatusTopic(), cd.FaultTopic(), cd.CommandTopic()} {
-				t := topic
-				if err := cd.SubscribeRaw(t, func(b []byte) {
+ 
+ 	mqttsrv "github.com/mochi-co/mqtt/server"
+ 	"github.com/mochi-co/mqtt/server/listeners"
+ 	"github.com/mochi-co/mqtt/server/listeners/auth"
+ 
+ 	"github.com/libdyson-wg/opendyson/devices"
+ )
+ 
+ func Host(
+ 	getDevices func() ([]devices.Device, error),
+ ) func(serial string, iot bool) error {
+ 	return func(serial string, iot bool) error {
+ 		srv := mqttsrv.New()
+ 		tcp := listeners.NewTCP("t1", ":1883")
+ 		if err := srv.AddListener(tcp, &listeners.Config{Auth: new(auth.Allow)}); err != nil {
+ 			return fmt.Errorf("add listener: %w", err)
+ 		}
+ 		go func() {
+ 			if err := srv.Serve(); err != nil {
+ 				fmt.Println(err)
+ 			}
+ 		}()
+ 
+ 		ds, err := getDevices()
+ 		if err != nil {
+ 			return err
+ 		}
+ 
+ 		subscribe := func(cd devices.ConnectedDevice) error {
+ 			if iot {
+ 				cd.SetMode(devices.ModeIoT)
+ 			}
+ 			for _, topic := range []string{cd.StatusTopic(), cd.FaultTopic(), cd.CommandTopic()} {
+ 				t := topic
+ 				if err := cd.SubscribeRaw(t, func(b []byte) {
 					fmt.Printf("Incoming message %s on topic %s\n", string(b), t)
-					srv.Publish(t, b, false)
-				}); err != nil {
-					return err
-				}
-			}
+ 					srv.Publish(t, b, false)
+ 				}); err != nil {
+ 					return err
+ 				}
+ 			}
 
 			if iot {
 				go func() {
@@ -67,52 +67,28 @@ func Host(
 					}
 				}()
 			}
-			return nil
-		}
-
-		if strings.EqualFold(serial, "ALL") {
-			found := false
-			for _, d := range ds {
-				cd, ok := d.(devices.ConnectedDevice)
-				if !ok {
-					continue
-				}
-				found = true
-				if err := subscribe(cd); err != nil {
-					return err
-				}
-			}
-			if !found {
-				return fmt.Errorf("no connected devices found")
-			}
-		} else {
-			var d devices.Device
-			for _, dev := range ds {
-				if dev.GetSerial() == serial {
-					d = dev
-					break
-				}
-			}
-			if d == nil {
-				return fmt.Errorf("device with serial %s not found", serial)
-			}
-			cd, ok := d.(devices.ConnectedDevice)
-			if !ok {
-				return fmt.Errorf("device %s is not connected", serial)
-			}
-			if err := subscribe(cd); err != nil {
-				return err
-			}
-		}
-
-		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, syscall.SIGTERM, os.Interrupt)
-		go func() {
-			<-sig
-			srv.Close()
-			os.Exit(0)
-		}()
-
-		select {}
-	}
-}
+ 			return nil
+ 		}
+ 
+ 		if strings.EqualFold(serial, "ALL") {
+ 			found := false
+ 			for _, d := range ds {
+ 				cd, ok := d.(devices.ConnectedDevice)
+ 				if !ok {
+ 					continue
+ 				}
+ 				found = true
+ 				if err := subscribe(cd); err != nil {
+ 					return err
+ 				}
+ 			}
+ 			if !found {
+ 				return fmt.Errorf("no connected devices found")
+ 			}
+ 		} else {
+ 			var d devices.Device
+ 			for _, dev := range ds {
+ 				if dev.GetSerial() == serial {
+ 					d = dev
+ 					break
+ 				}
