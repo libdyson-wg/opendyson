@@ -35,7 +35,12 @@ func Host(
 			return err
 		}
 
-		subscribe := func(cd devices.ConnectedDevice) error {
+		subscribed := make(map[string]struct{})
+
+		subscribe := func(id string, cd devices.ConnectedDevice) error {
+			if _, ok := subscribed[id]; ok {
+				return nil
+			}
 			if iot {
 				cd.SetMode(devices.ModeIoT)
 			}
@@ -67,6 +72,7 @@ func Host(
 					}
 				}()
 			}
+			subscribed[id] = struct{}{}
 			return nil
 		}
 
@@ -78,7 +84,7 @@ func Host(
 					continue
 				}
 				found = true
-				if err := subscribe(cd); err != nil {
+				if err := subscribe(d.GetSerial(), cd); err != nil {
 					return err
 				}
 			}
@@ -100,10 +106,34 @@ func Host(
 			if !ok {
 				return fmt.Errorf("device %s is not connected", serial)
 			}
-			if err := subscribe(cd); err != nil {
+			if err := subscribe(d.GetSerial(), cd); err != nil {
 				return err
 			}
 		}
+
+		go func() {
+			ticker := time.NewTicker(5 * time.Minute)
+			defer ticker.Stop()
+			for range ticker.C {
+				if !strings.EqualFold(serial, "ALL") {
+					continue
+				}
+				nds, err := getDevices()
+				if err != nil {
+					fmt.Println("device refresh:", err)
+					continue
+				}
+				for _, d := range nds {
+					cd, ok := d.(devices.ConnectedDevice)
+					if !ok {
+						continue
+					}
+					if err := subscribe(d.GetSerial(), cd); err != nil {
+						fmt.Println(err)
+					}
+				}
+			}
+		}()
 
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, syscall.SIGTERM, os.Interrupt)
