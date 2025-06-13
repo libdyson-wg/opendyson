@@ -8,27 +8,34 @@ import (
 	"syscall"
 	"time"
 
-	mqttsrv "github.com/mochi-co/mqtt/server"
-	"github.com/mochi-co/mqtt/server/listeners"
-	"github.com/mochi-co/mqtt/server/listeners/auth"
+	paho "github.com/eclipse/paho.mqtt.golang"
 
 	"github.com/libdyson-wg/opendyson/devices"
 )
 
-func Host(
+func Repeater(
 	getDevices func() ([]devices.Device, error),
-) func(serial string, iot bool) error {
-	return func(serial string, iot bool) error {
-		srv := mqttsrv.New()
-		tcp := listeners.NewTCP("t1", ":1883")
-		if err := srv.AddListener(tcp, &listeners.Config{Auth: new(auth.Allow)}); err != nil {
-			return fmt.Errorf("add listener: %w", err)
+) func(serial string, iot bool, host, user, password string) error {
+	return func(serial string, iot bool, host, user, password string) error {
+		opts := paho.NewClientOptions()
+		if strings.Contains(host, "://") {
+			opts.AddBroker(host)
+		} else {
+			opts.AddBroker(fmt.Sprintf("tcp://%s:1883", host))
 		}
-		go func() {
-			if err := srv.Serve(); err != nil {
-				fmt.Println(err)
-			}
-		}()
+		opts.SetClientID("opendyson-repeater")
+		if user != "" {
+			opts.SetUsername(user)
+			opts.SetPassword(password)
+		}
+		client := paho.NewClient(opts)
+		t := client.Connect()
+		if !t.WaitTimeout(5 * time.Second) {
+			return fmt.Errorf("mqtt connect %s timeout", host)
+		}
+		if t.Error() != nil {
+			return fmt.Errorf("unable to connect: %w", t.Error())
+		}
 
 		ds, err := getDevices()
 		if err != nil {
@@ -48,7 +55,7 @@ func Host(
 				t := topic
 				if err := cd.SubscribeRaw(t, func(b []byte) {
 					fmt.Printf("Incoming message %s on topic %s\n", string(b), t)
-					srv.Publish(t, b, false)
+					client.Publish(t, 0, false, b)
 				}); err != nil {
 					return err
 				}
@@ -139,7 +146,7 @@ func Host(
 		signal.Notify(sig, syscall.SIGTERM, os.Interrupt)
 		go func() {
 			<-sig
-			srv.Close()
+			client.Disconnect(250)
 			os.Exit(0)
 		}()
 
