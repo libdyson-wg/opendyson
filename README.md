@@ -46,3 +46,12 @@ is included, opendyson will connect to the cloud-based IoT service instead of at
 `opendyson host SERIALNUMBER` starts a local MQTT broker on port 1883. The command subscribes to the same topics as `listen` and republishes
 the messages to the local broker. Use `opendyson host ALL` to bridge all discovered devices. The `--iot` flag can be used in the same way as
 with `listen`.
+
+### Repeat MQTT messages to a remote broker
+
+`opendyson repeater SERIALNUMBER --host HOSTNAME` will subscribe to the same
+topics as `listen` and publish them to the specified MQTT host. Use
+`opendyson repeater ALL` to repeat messages for all discovered devices. Optional
+`--user` and `--password` flags can be supplied for authenticated brokers. If no
+credentials are provided, the connection will be unauthenticated. The `--iot`
+flag can be used in the same way as with `listen`.
