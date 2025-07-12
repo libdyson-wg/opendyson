@@ -1,5 +1,6 @@
 # opendyson
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/libdyson-wg/opendyson)](https://goreportcard.com/report/github.com/libdyson-wg/opendyson)
 [![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/libdyson-wg/opendyson)](https://github.com/libdyson-wg/opendyson/releases/)
 [![Latest Release](https://badgen.net/github/release/libdyson-wg/opendyson)](https://github.com/libdyson-wg/opendyson/releases/)
 [![Latest Commit](https://badgen.net/github/last-commit/libdyson-wg/opendyson/main)](https://github.com/libdyson-wg/opendyson/commit/HEAD)
