@@ -11,7 +11,11 @@ A library for talking to Dyson devices in Go, with a simple CLI tool.
 
 ### `go install` method
 
-If you have Go installed and configured on your system, you can install it with `go install github.com/libdyson-wg/opendyson` 
+If you have Go installed and configured on your system, you can install it with...
+
+```sh
+go install github.com/libdyson-wg/opendyson@latest
+``` 
 
 ### Download and run
 
